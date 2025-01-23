@@ -26,7 +26,20 @@ func NewValidator() *Validator {
 	}
 }
 
-func Validate(data interface{}) []ErrorResponse {
+func (v *Validator) Validate(data interface{}) []ErrorResponse {
 	var validationErrors []ErrorResponse
+
+	errs := v.validator.Struct(data)
+	if errs != nil {
+		for _, err := range errs.(validator.ValidationErrors) {
+			var elem ErrorResponse
+			elem.Error = true
+			elem.FailedField = err.Field()
+			elem.Tag = err.Tag()
+			elem.Value = err.Value()
+
+			validationErrors = append(validationErrors, elem)
+		}
+	}
 	return validationErrors
 }

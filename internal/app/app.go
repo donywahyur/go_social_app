@@ -2,6 +2,7 @@ package app
 
 import (
 	"go_social_app/internal/handlers"
+	"go_social_app/internal/initializers"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,7 +17,8 @@ func Initialize() *App {
 	db := GetDB()
 
 	//initialize handler
-	userHandler := handlers.NewUserHandler(db)
+	userHandler := initializers.InitUserHandler(db)
+
 	return &App{
 		FiberApp:    fiber,
 		UserHandler: userHandler,
