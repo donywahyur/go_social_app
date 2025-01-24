@@ -17,7 +17,7 @@ type User interface {
 	CompareHash(password, passwordHash string) (bool, error)
 }
 
-type repository struct {
+type userRepository struct {
 	db    *gorm.DB
 	param params
 }
@@ -30,8 +30,8 @@ type params struct {
 	keyLength   uint32
 }
 
-func NewUserRepository(db *gorm.DB) *repository {
-	return &repository{
+func NewUserRepository(db *gorm.DB) *userRepository {
+	return &userRepository{
 		db,
 		params{
 			memory:      64 * 1024,
@@ -42,7 +42,7 @@ func NewUserRepository(db *gorm.DB) *repository {
 		}}
 }
 
-func (r *repository) HashPassword(password string) (string, error) {
+func (r *userRepository) HashPassword(password string) (string, error) {
 	salt := make([]byte, r.param.saltLength)
 	_, err := rand.Read(salt)
 	if err != nil {
@@ -59,7 +59,7 @@ func (r *repository) HashPassword(password string) (string, error) {
 	return encodedHash, nil
 }
 
-func (r *repository) CompareHash(password, passwordHash string) (bool, error) {
+func (r *userRepository) CompareHash(password, passwordHash string) (bool, error) {
 	vals := strings.Split(passwordHash, "$")
 	if len(vals) != 6 {
 		return false, errors.New("invalid hash")

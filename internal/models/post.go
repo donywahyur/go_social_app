@@ -15,8 +15,8 @@ type Post struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	Version   int            `json:"version"`
-	Comments  []Comment      `gorm:"foreignKey:PostID" json:"comments"`
-	User      User           `gorm:"foreignKey:UserID" json:"user"`
+	Comments  []Comment      `gorm:"foreignKey:PostID" json:"-"`
+	User      User           `gorm:"foreignKey:UserID" json:"-"`
 }
 
 type Comment struct {
@@ -26,4 +26,15 @@ type Comment struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
 	User      User      `gorm:"foreignKey:UserID" json:"user"`
+}
+
+type CreatePostRequest struct {
+	Content string   `json:"content" validate:"required"`
+	Title   string   `json:"title" validate:"required"`
+	Tags    []string `json:"tags" validate:"required"`
+	User    User
+}
+
+type GetPostByIDRequest struct {
+	ID string `uri:"id" validate:"required"`
 }

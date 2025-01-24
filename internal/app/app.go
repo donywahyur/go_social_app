@@ -10,6 +10,7 @@ import (
 type App struct {
 	FiberApp    *fiber.App
 	UserHandler *handlers.UserHandler
+	PostHandler *handlers.PostHandler
 }
 
 func Initialize() *App {
@@ -18,9 +19,11 @@ func Initialize() *App {
 
 	//initialize handler
 	userHandler := initializers.InitUserHandler(db)
+	postHandler := initializers.InitPostHandler(db)
 
 	return &App{
 		FiberApp:    fiber,
 		UserHandler: userHandler,
+		PostHandler: postHandler,
 	}
 }
