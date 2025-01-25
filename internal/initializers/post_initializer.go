@@ -9,8 +9,9 @@ import (
 )
 
 func InitPostHandler(db *gorm.DB) *handlers.PostHandler {
-	repo := repositories.NewPostRepository(db)
-	service := services.NewPostService(repo)
+	postRepo := repositories.NewPostRepository(db)
+	commentRepo := repositories.NewCommentRepository(db)
+	service := services.NewPostService(postRepo, commentRepo)
 	handler := handlers.NewPostHandler(service)
 
 	return handler

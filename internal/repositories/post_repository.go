@@ -9,6 +9,7 @@ import (
 type PostRepository interface {
 	CreatePost(post model.Post) (model.Post, error)
 	GetPostByID(postID string) (model.Post, error)
+	UpdatePost(post model.Post) (model.Post, error)
 }
 
 type postRepository struct {
@@ -32,6 +33,15 @@ func (r *postRepository) GetPostByID(postID string) (model.Post, error) {
 	var post model.Post
 
 	err := r.db.Preload("User").Where("id = ?", postID).First(&post).Error
+	if err != nil {
+		return post, err
+	}
+
+	return post, nil
+}
+
+func (r *postRepository) UpdatePost(post model.Post) (model.Post, error) {
+	err := r.db.Where("id = ?", post.ID).Where("version = ?", post.Version-1).Model(&model.Post{}).Updates(&post).Error
 	if err != nil {
 		return post, err
 	}

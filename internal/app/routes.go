@@ -6,8 +6,10 @@ func LoadRoute(app *App) {
 
 	v1.Get("/", app.UserHandler.Create)
 
-	post := v1.Group("/posts")
-	post.Post("", app.PostHandler.CreatePost)
-	post.Get("/:id", app.PostHandler.GetPostByID)
+	posts := v1.Group("/posts")
+	posts.Post("", app.PostHandler.CreatePost)
+	posts.Get("/:id", app.PostHandler.GetPostByID)
+	posts.Put("/:id", app.PostHandler.UpdatePost)
+	posts.Post("/:id/comments", app.PostHandler.CreateComment)
 
 }
