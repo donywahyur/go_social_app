@@ -9,8 +9,10 @@ import (
 )
 
 func InitUserHandler(db *gorm.DB) *handlers.UserHandler {
-	repo := repositories.NewUserRepository(db)
-	service := services.NewUserService(repo)
+	userRepo := repositories.NewUserRepository(db)
+	followerRepo := repositories.NewFollowerRepository(db)
+	postRepo := repositories.NewPostRepository(db)
+	service := services.NewUserService(userRepo, followerRepo, postRepo)
 	handler := handlers.NewUserHandler(service)
 
 	return handler

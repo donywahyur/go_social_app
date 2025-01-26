@@ -10,6 +10,7 @@ type PostRepository interface {
 	CreatePost(post model.Post) (model.Post, error)
 	GetPostByID(postID string) (model.Post, error)
 	UpdatePost(post model.Post) (model.Post, error)
+	UserFeed(userID string) ([]model.UserFeed, error)
 }
 
 type postRepository struct {
@@ -47,4 +48,24 @@ func (r *postRepository) UpdatePost(post model.Post) (model.Post, error) {
 	}
 
 	return post, nil
+}
+
+func (r *postRepository) UserFeed(userID string) ([]model.UserFeed, error) {
+	var userFeed []model.UserFeed
+
+	err := r.db.Table("posts").
+		Select("posts.id as post_id, posts.user_id, posts.content, posts.title, posts.tags, posts.created_at, posts.version, users.username, count(comments.id) as comment_count ").
+		Joins("LEFT JOIN users ON users.id = posts.user_id").
+		Joins("LEFT JOIN comments ON comments.post_id = posts.id").
+		Joins("JOIN followers ON followers.follower_id = posts.user_id OR posts.user_id = ?", userID).
+		Where("followers.user_id = ? OR posts.user_id = ?", userID, userID).
+		Group("posts.id, users.username").
+		Order("posts.created_at DESC").
+		Scan(&userFeed).Error
+
+	if err != nil {
+		return userFeed, err
+	}
+
+	return userFeed, nil
 }

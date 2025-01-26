@@ -16,3 +16,12 @@ type UserRegiterInput struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
 }
+
+type GetUserByIDInput struct {
+	ID string `uri:"id" validate:"required"`
+}
+
+type FollowInput struct {
+	ID   string `uri:"id" validate:"required"`
+	User User
+}

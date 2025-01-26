@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	model "go_social_app/internal/models"
 	"strings"
 
 	"golang.org/x/crypto/argon2"
@@ -15,6 +16,7 @@ import (
 type User interface {
 	HashPassword(password string) (string, error)
 	CompareHash(password, passwordHash string) (bool, error)
+	GetUserByID(userID string) (model.User, error)
 }
 
 type userRepository struct {
@@ -40,6 +42,15 @@ func NewUserRepository(db *gorm.DB) *userRepository {
 			saltLength:  16,
 			keyLength:   32,
 		}}
+}
+
+func (r *userRepository) GetUserByID(userID string) (model.User, error) {
+	var user model.User
+	err := r.db.Preload("Role").First(&user, "id = ?", userID).Error
+	if err != nil {
+		return model.User{}, err
+	}
+	return user, nil
 }
 
 func (r *userRepository) HashPassword(password string) (string, error) {

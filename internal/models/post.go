@@ -36,3 +36,14 @@ type UpdatePostRequest struct {
 	Title   string   `json:"title" validate:"required"`
 	Tags    []string `json:"tags" validate:"required"`
 }
+
+type UserFeed struct {
+	PostID       string         `json:"post_id"`
+	UserID       string         `json:"user_id"`
+	Content      string         `json:"content"`
+	Title        string         `json:"title"`
+	Tags         pq.StringArray `gorm:"type:text[]" json:"tags"`
+	CreatedAt    time.Time      `json:"created_at"`
+	Version      int            `json:"version"`
+	CommentCount int            `json:"comment_count"`
+}
