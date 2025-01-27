@@ -34,8 +34,10 @@ type FollowInput struct {
 
 type UserFeedRequest struct {
 	User   User
-	Limit  int `json:"limit" validate:"gte=0,lte=100"`
-	Offset int `json:"offset" validate:"gte=0"`
+	Limit  int            `json:"limit" validate:"gte=0,lte=100"`
+	Offset int            `json:"offset" validate:"gte=0"`
+	Search string         `json:"search"`
+	Tags   pq.StringArray `gorm:"type:text[]" json:"tags"`
 }
 
 type UserFeed struct {

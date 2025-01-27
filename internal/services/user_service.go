@@ -89,7 +89,7 @@ func (s *userService) UnfollowUser(request model.FollowInput) (bool, error) {
 }
 
 func (s *userService) GetUserFeed(request model.UserFeedRequest) ([]model.UserFeed, error) {
-	feed, err := s.postRepo.UserFeed(request.User.ID, request.Limit, request.Offset)
+	feed, err := s.postRepo.UserFeed(request.User.ID, request.Limit, request.Offset, request.Search, request.Tags)
 
 	if err != nil {
 		return nil, err

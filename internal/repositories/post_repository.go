@@ -3,6 +3,7 @@ package repositories
 import (
 	model "go_social_app/internal/models"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -10,7 +11,7 @@ type PostRepository interface {
 	CreatePost(post model.Post) (model.Post, error)
 	GetPostByID(postID string) (model.Post, error)
 	UpdatePost(post model.Post) (model.Post, error)
-	UserFeed(userID string, limit int, offset int) ([]model.UserFeed, error)
+	UserFeed(userID string, limit int, offset int, search string, tags pq.StringArray) ([]model.UserFeed, error)
 }
 
 type postRepository struct {
@@ -50,7 +51,7 @@ func (r *postRepository) UpdatePost(post model.Post) (model.Post, error) {
 	return post, nil
 }
 
-func (r *postRepository) UserFeed(userID string, limit int, offset int) ([]model.UserFeed, error) {
+func (r *postRepository) UserFeed(userID string, limit int, offset int, search string, tags pq.StringArray) ([]model.UserFeed, error) {
 	var userFeed []model.UserFeed
 
 	err := r.db.Table("posts").
@@ -58,7 +59,9 @@ func (r *postRepository) UserFeed(userID string, limit int, offset int) ([]model
 		Joins("LEFT JOIN users ON users.id = posts.user_id").
 		Joins("LEFT JOIN comments ON comments.post_id = posts.id").
 		Joins("JOIN followers ON followers.follower_id = posts.user_id OR posts.user_id = ?", userID).
-		Where("followers.user_id = ? OR posts.user_id = ?", userID, userID).
+		Where("followers.user_id = ? ", userID).
+		Where("posts.title ILIKE '%' || ? || '%' OR posts.content ILIKE '%' || ? || '%' ", search, search).
+		Where("posts.tags @> ? OR ? = '{}'", tags, tags).
 		Group("posts.id, users.username").
 		Order("posts.created_at DESC").
 		Offset(offset).Limit(limit).
