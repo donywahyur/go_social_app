@@ -22,10 +22,17 @@ type UserInvitation struct {
 	UserID    string    `json:"user_id"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
+type UserWithToken struct {
+	User  User   `json:"user"`
+	Token string `json:"token"`
+}
 type UserRegiterInput struct {
 	Username string `json:"username" validate:"required,min=8"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
+}
+type UserActivationInput struct {
+	Token string `uri:"token" validate:"required"`
 }
 
 type GetUserByIDInput struct {

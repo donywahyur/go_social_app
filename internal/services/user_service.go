@@ -10,7 +10,8 @@ import (
 )
 
 type UserService interface {
-	RegisterUser(request model.UserRegiterInput) (model.User, error)
+	RegisterUser(request model.UserRegiterInput) (model.UserWithToken, error)
+	ActivationUser(request model.UserActivationInput) (model.User, error)
 	GetUserByID(request model.GetUserByIDInput) (model.User, error)
 	FollowUser(request model.FollowInput) (bool, error)
 	UnfollowUser(request model.FollowInput) (bool, error)
@@ -27,7 +28,7 @@ func NewUserService(userRepo repositories.User, followerRepo repositories.Follow
 	return &userService{userRepo, followerRepo, postRepo}
 }
 
-func (s *userService) RegisterUser(request model.UserRegiterInput) (model.User, error) {
+func (s *userService) RegisterUser(request model.UserRegiterInput) (model.UserWithToken, error) {
 	userID := uuid.NewString()
 
 	userInvitation := model.UserInvitation{
@@ -52,17 +53,32 @@ func (s *userService) RegisterUser(request model.UserRegiterInput) (model.User, 
 
 	passwordHash, err := s.userRepo.HashPassword(request.Password)
 	if err != nil {
-		return model.User{}, err
+		return model.UserWithToken{}, err
 	}
 
 	user.Password = passwordHash
 
 	newUser, err := s.userRepo.RegisterAndInviteUser(user, userInvitation)
 	if err != nil {
+		return model.UserWithToken{}, err
+	}
+
+	userWithToken := model.UserWithToken{
+		User:  newUser,
+		Token: userInvitation.Token,
+	}
+
+	return userWithToken, nil
+}
+
+func (s *userService) ActivationUser(request model.UserActivationInput) (model.User, error) {
+
+	user, err := s.userRepo.ActivationUser(request.Token)
+	if err != nil {
 		return model.User{}, err
 	}
 
-	return newUser, nil
+	return user, nil
 }
 
 func (s *userService) GetUserByID(request model.GetUserByIDInput) (model.User, error) {

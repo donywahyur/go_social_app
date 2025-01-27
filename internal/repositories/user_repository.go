@@ -9,6 +9,7 @@ import (
 	"go_social_app/internal/helpers"
 	model "go_social_app/internal/models"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
@@ -19,6 +20,7 @@ type User interface {
 	HashPassword(password string) (string, error)
 	CompareHash(password, passwordHash string) (bool, error)
 	GetUserByID(userID string) (model.User, error)
+	ActivationUser(token string) (model.User, error)
 }
 
 type userRepository struct {
@@ -88,6 +90,72 @@ func (r *userRepository) RegisterAndInviteUser(user model.User, userInvitation m
 	}
 	return createdUser, nil
 }
+func (r *userRepository) ActivationUser(token string) (model.User, error) {
+	var user model.User
+	err := helpers.RunDBTransaction(r.db, func(tx *gorm.DB) error {
+
+		userInvitation, err := r.getUserInvitationByToken(tx, token)
+		if err != nil {
+			return err
+		}
+
+		user, err = r.GetUserByID(userInvitation.UserID)
+		if err != nil {
+			return err
+		}
+
+		user.IsActive = true
+
+		_, err = r.update(tx, user)
+		if err != nil {
+			return err
+		}
+
+		err = r.deleteUserInvitation(tx, userInvitation)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+
+}
+func (r *userRepository) update(tx *gorm.DB, user model.User) (model.User, error) {
+	err := tx.Save(&user).Error
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+}
+func (r *userRepository) deleteUserInvitation(tx *gorm.DB, userInvitation model.UserInvitation) error {
+	err := tx.Delete(&userInvitation).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) getUserInvitationByToken(tx *gorm.DB, token string) (model.UserInvitation, error) {
+
+	var userInvitation model.UserInvitation
+
+	err := tx.Where("token = ?", token).Where("expired_at > ?", time.Now()).First(&userInvitation).Error
+
+	if err != nil {
+		return model.UserInvitation{}, err
+	}
+
+	return userInvitation, nil
+}
+
 func (r *userRepository) GetUserByID(userID string) (model.User, error) {
 	var user model.User
 	err := r.db.Preload("Role").First(&user, "id = ?", userID).Error

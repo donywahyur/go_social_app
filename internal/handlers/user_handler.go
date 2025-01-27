@@ -102,10 +102,24 @@ func (h *UserHandler) RegisterUser(c *fiber.Ctx) error {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": errorMsg}))
 	}
 
-	user, err := h.userService.RegisterUser(request)
+	userWithToken, err := h.userService.RegisterUser(request)
 	if err != nil {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
 	}
 
-	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to register user", user))
+	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to register user", userWithToken))
+}
+
+func (h *UserHandler) ActivationUser(c *fiber.Ctx) error {
+	var request model.UserActivationInput
+	if err := c.ParamsParser(&request); err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	user, err := h.userService.ActivationUser(request)
+	if err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to activation user", user))
 }
