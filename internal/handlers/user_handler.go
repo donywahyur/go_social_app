@@ -16,6 +16,19 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 	return &UserHandler{userService}
 }
 
+// CreateUser  godoc
+//
+//	@Summary      create user
+//	@Description  create user
+//	@Tags         user
+//	@Accept       json
+//	@Produce      json
+//	@Param
+//	@Success      200  {array}   model.User
+//	@Failure      400  {object}  error
+//	@Failure      404  {object}  error
+//	@Failure      500  {object}  error
+//	@Router       /users [post]
 func (h *UserHandler) Create(c *fiber.Ctx) error {
 	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Halo", fiber.Map{"Message": "Halo"}))
 }
