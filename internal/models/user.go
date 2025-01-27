@@ -7,16 +7,21 @@ import (
 )
 
 type User struct {
-	ID        string `json:"id"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	Password  string `json:"-"`
-	CreatedAt string `json:"created_at"`
-	IsActive  bool   `json:"is_active"`
-	RoleID    string `json:"role_id"`
-	Role      Role   `gorm:"foreignKey:RoleID" json:"role"`
+	ID        string    `json:"id" gorm:"PrimaryKey"`
+	Username  string    `json:"username" gorm:"unique"`
+	Email     string    `json:"email" gorm:"unique"`
+	Password  string    `json:"-"`
+	CreatedAt time.Time `json:"created_at"`
+	IsActive  bool      `json:"is_active"`
+	RoleID    string    `json:"role_id"`
+	Role      Role      `gorm:"foreignKey:RoleID" json:"role"`
 }
 
+type UserInvitation struct {
+	Token     string    `json:"token" gorm:"PrimaryKey"`
+	UserID    string    `json:"user_id"`
+	ExpiredAt time.Time `json:"expired_at"`
+}
 type UserRegiterInput struct {
 	Username string `json:"username" validate:"required,min=8"`
 	Email    string `json:"email" validate:"required,email"`

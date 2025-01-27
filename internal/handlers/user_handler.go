@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"go_social_app/internal/helpers"
 	model "go_social_app/internal/models"
 	"go_social_app/internal/services"
@@ -14,23 +15,6 @@ type UserHandler struct {
 
 func NewUserHandler(userService services.UserService) *UserHandler {
 	return &UserHandler{userService}
-}
-
-// CreateUser  godoc
-//
-//	@Summary      create user
-//	@Description  create user
-//	@Tags         user
-//	@Accept       json
-//	@Produce      json
-//	@Param
-//	@Success      200  {array}   model.User
-//	@Failure      400  {object}  error
-//	@Failure      404  {object}  error
-//	@Failure      500  {object}  error
-//	@Router       /users [post]
-func (h *UserHandler) Create(c *fiber.Ctx) error {
-	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Halo", fiber.Map{"Message": "Halo"}))
 }
 
 func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
@@ -100,4 +84,28 @@ func (h *UserHandler) GetUserFeed(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success", feed))
+}
+
+func (h *UserHandler) RegisterUser(c *fiber.Ctx) error {
+	var request model.UserRegiterInput
+	if err := c.BodyParser(&request); err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	validator := helpers.NewValidator()
+	errs := validator.Validate(request)
+	if errs != nil {
+		errorMsg := []string{}
+		for _, err := range errs {
+			errorMsg = append(errorMsg, fmt.Sprintf("%s: %s", err.FailedField, err.Tag))
+		}
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": errorMsg}))
+	}
+
+	user, err := h.userService.RegisterUser(request)
+	if err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to register user", user))
 }

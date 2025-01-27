@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"go_social_app/internal/helpers"
 	model "go_social_app/internal/models"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 )
 
 type User interface {
+	RegisterAndInviteUser(user model.User, userInvitation model.UserInvitation) (model.User, error)
 	HashPassword(password string) (string, error)
 	CompareHash(password, passwordHash string) (bool, error)
 	GetUserByID(userID string) (model.User, error)
@@ -44,6 +46,48 @@ func NewUserRepository(db *gorm.DB) *userRepository {
 		}}
 }
 
+func (r *userRepository) registerUser(tx *gorm.DB, user model.User) (model.User, error) {
+
+	err := tx.Create(&user).Error
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
+}
+func (r *userRepository) invitationUser(tx *gorm.DB, userInvitation model.UserInvitation) (model.UserInvitation, error) {
+
+	err := tx.Create(&userInvitation).Error
+	if err != nil {
+		return model.UserInvitation{}, err
+	}
+
+	return userInvitation, nil
+}
+func (r *userRepository) RegisterAndInviteUser(user model.User, userInvitation model.UserInvitation) (model.User, error) {
+	err := helpers.RunDBTransaction(r.db, func(tx *gorm.DB) error {
+		_, err := r.registerUser(tx, user)
+		if err != nil {
+			return err
+		}
+
+		_, err = r.invitationUser(tx, userInvitation)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return model.User{}, err
+	}
+	createdUser, err := r.GetUserByID(user.ID)
+	if err != nil {
+		return model.User{}, err
+	}
+	return createdUser, nil
+}
 func (r *userRepository) GetUserByID(userID string) (model.User, error) {
 	var user model.User
 	err := r.db.Preload("Role").First(&user, "id = ?", userID).Error

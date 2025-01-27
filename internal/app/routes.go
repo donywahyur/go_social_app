@@ -27,6 +27,9 @@ func LoadRoute(app *App) {
 		OAuth2RedirectUrl: "http://localhost:8080/swagger/oauth2-redirect.html",
 	}))
 
+	authentication := v1.Group("/authentication")
+	authentication.Post("/register", app.UserHandler.RegisterUser)
+
 	users := v1.Group("/users")
 	users.Get("/feeds", app.UserHandler.GetUserFeed)
 	users.Get("/:id", app.UserHandler.GetUserByID)

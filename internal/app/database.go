@@ -27,7 +27,7 @@ func GetDB() *gorm.DB {
 		panic(err)
 	}
 
-	err = db.AutoMigrate(&model.User{}, &model.Role{}, &model.Follower{}, &model.Post{}, &model.Comment{})
+	err = db.AutoMigrate(&model.User{}, &model.UserInvitation{}, &model.Role{}, &model.Follower{}, &model.Post{}, &model.Comment{})
 	if err != nil {
 		log.Fatal("Migration failed:", err)
 	}
@@ -75,7 +75,7 @@ func seed(db *gorm.DB) {
 					Email:     username + "@example.com",
 					Password:  hashedPassword,
 					Role:      roles[0],
-					CreatedAt: fmt.Sprintf("%v", time.Now().Format(time.RFC3339)),
+					CreatedAt: time.Now(),
 					IsActive:  true,
 				}
 				db.Create(&user)

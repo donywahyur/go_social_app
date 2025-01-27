@@ -5,10 +5,12 @@ import (
 	model "go_social_app/internal/models"
 	"go_social_app/internal/repositories"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserService interface {
-	Create(request model.UserRegiterInput) (model.User, error)
+	RegisterUser(request model.UserRegiterInput) (model.User, error)
 	GetUserByID(request model.GetUserByIDInput) (model.User, error)
 	FollowUser(request model.FollowInput) (bool, error)
 	UnfollowUser(request model.FollowInput) (bool, error)
@@ -25,10 +27,42 @@ func NewUserService(userRepo repositories.User, followerRepo repositories.Follow
 	return &userService{userRepo, followerRepo, postRepo}
 }
 
-func (s *userService) Create(request model.UserRegiterInput) (model.User, error) {
-	var user model.User
+func (s *userService) RegisterUser(request model.UserRegiterInput) (model.User, error) {
+	userID := uuid.NewString()
 
-	return user, nil
+	userInvitation := model.UserInvitation{
+		Token:     uuid.NewString(),
+		UserID:    userID,
+		ExpiredAt: time.Now().Add(time.Hour * 24),
+	}
+
+	user := model.User{
+		ID:       userID,
+		Username: request.Username,
+		Email:    request.Email,
+		Password: request.Password,
+		IsActive: false,
+		Role: model.Role{
+			ID:    "1",
+			Name:  "user",
+			Level: 1,
+		},
+		CreatedAt: time.Now(),
+	}
+
+	passwordHash, err := s.userRepo.HashPassword(request.Password)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	user.Password = passwordHash
+
+	newUser, err := s.userRepo.RegisterAndInviteUser(user, userInvitation)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return newUser, nil
 }
 
 func (s *userService) GetUserByID(request model.GetUserByIDInput) (model.User, error) {
