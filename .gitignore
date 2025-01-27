@@ -1,3 +1,4 @@
 .envrc
 tmp/
 .air.toml
+docs/
