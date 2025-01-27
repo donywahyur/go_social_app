@@ -12,7 +12,7 @@ type UserService interface {
 	GetUserByID(request model.GetUserByIDInput) (model.User, error)
 	FollowUser(request model.FollowInput) (bool, error)
 	UnfollowUser(request model.FollowInput) (bool, error)
-	GetUserFeed(user model.User) ([]model.UserFeed, error)
+	GetUserFeed(request model.UserFeedRequest) ([]model.UserFeed, error)
 }
 
 type userService struct {
@@ -88,8 +88,8 @@ func (s *userService) UnfollowUser(request model.FollowInput) (bool, error) {
 	return unfollowed, nil
 }
 
-func (s *userService) GetUserFeed(user model.User) ([]model.UserFeed, error) {
-	feed, err := s.postRepo.UserFeed(user.ID)
+func (s *userService) GetUserFeed(request model.UserFeedRequest) ([]model.UserFeed, error) {
+	feed, err := s.postRepo.UserFeed(request.User.ID, request.Limit, request.Offset)
 
 	if err != nil {
 		return nil, err

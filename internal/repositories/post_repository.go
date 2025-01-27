@@ -10,7 +10,7 @@ type PostRepository interface {
 	CreatePost(post model.Post) (model.Post, error)
 	GetPostByID(postID string) (model.Post, error)
 	UpdatePost(post model.Post) (model.Post, error)
-	UserFeed(userID string) ([]model.UserFeed, error)
+	UserFeed(userID string, limit int, offset int) ([]model.UserFeed, error)
 }
 
 type postRepository struct {
@@ -50,7 +50,7 @@ func (r *postRepository) UpdatePost(post model.Post) (model.Post, error) {
 	return post, nil
 }
 
-func (r *postRepository) UserFeed(userID string) ([]model.UserFeed, error) {
+func (r *postRepository) UserFeed(userID string, limit int, offset int) ([]model.UserFeed, error) {
 	var userFeed []model.UserFeed
 
 	err := r.db.Table("posts").
@@ -61,6 +61,7 @@ func (r *postRepository) UserFeed(userID string) ([]model.UserFeed, error) {
 		Where("followers.user_id = ? OR posts.user_id = ?", userID, userID).
 		Group("posts.id, users.username").
 		Order("posts.created_at DESC").
+		Offset(offset).Limit(limit).
 		Scan(&userFeed).Error
 
 	if err != nil {

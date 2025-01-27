@@ -70,10 +70,18 @@ func (h *UserHandler) UnfollowUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) GetUserFeed(c *fiber.Ctx) error {
-	var user model.User
-	user.ID = "e93fd2af-4471-4598-b20c-27f345ba097c"
+	var request model.UserFeedRequest
+	if err := c.ParamsParser(&request); err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+	if err := c.BodyParser(&request); err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
 
-	feed, err := h.userService.GetUserFeed(user)
+	request.User = model.User{
+		ID: "21250e17-d4f0-4124-84c8-c4babac4f597"}
+
+	feed, err := h.userService.GetUserFeed(request)
 	if err != nil {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
 	}

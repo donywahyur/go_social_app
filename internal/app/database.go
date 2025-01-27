@@ -188,4 +188,28 @@ func seed(db *gorm.DB) {
 		}
 	}
 
+	err = db.First(&model.Follower{}).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			user := []model.User{}
+			err = db.Find(&user).Error
+			if err != nil {
+				panic(err)
+			}
+			i := 0
+			for i < 200 {
+				userID := user[rand.Intn(len(user))].ID
+				followerID := user[rand.Intn(len(user))].ID
+				if userID != followerID {
+					follower := model.Follower{
+						UserID:     userID,
+						FollowerID: followerID,
+					}
+					db.Create(&follower)
+					i++
+				}
+			}
+		}
+	}
+
 }
