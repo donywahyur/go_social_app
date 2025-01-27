@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"go_social_app/internal/env"
 	"go_social_app/internal/helpers"
+	"go_social_app/internal/mailer"
 	model "go_social_app/internal/models"
 	"go_social_app/internal/services"
 
@@ -105,6 +107,29 @@ func (h *UserHandler) RegisterUser(c *fiber.Ctx) error {
 	userWithToken, err := h.userService.RegisterUser(request)
 	if err != nil {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	mailer := mailer.NewSendgrid(env.Get("SENDGRID_API_KEY", ""), env.Get("SENDGRID_FROM_EMAIL", ""))
+
+	data := struct {
+		Username      string
+		Email         string
+		ActivationURL string
+	}{
+		Username:      userWithToken.User.Username,
+		Email:         userWithToken.User.Email,
+		ActivationURL: "http://localhost:8080/activation/" + userWithToken.User.ID,
+	}
+
+	_, errEmail := mailer.SendEmail("user_invitation.tmpl", userWithToken.User, data)
+
+	if errEmail != nil {
+		err = h.userService.DeleteUser(userWithToken.User.ID)
+		if err != nil {
+			return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Error to delete new user", fiber.Map{"Message": err.Error()}))
+		}
+
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Error to send email", fiber.Map{"Message": errEmail.Error()}))
 	}
 
 	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to register user", userWithToken))

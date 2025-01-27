@@ -3,11 +3,14 @@ package app
 import (
 	_ "go_social_app/docs"
 
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 )
 
 // swagger handler
 func LoadRoute(app *App) {
+	app.FiberApp.Use(recover.New())
+
 	api := app.FiberApp.Group("/api")
 	v1 := api.Group("/v1")
 

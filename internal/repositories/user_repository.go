@@ -15,12 +15,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type User interface {
+type UserRepository interface {
 	RegisterAndInviteUser(user model.User, userInvitation model.UserInvitation) (model.User, error)
 	HashPassword(password string) (string, error)
 	CompareHash(password, passwordHash string) (bool, error)
 	GetUserByID(userID string) (model.User, error)
 	ActivationUser(token string) (model.User, error)
+	DeleteUser(userID string) error
 }
 
 type userRepository struct {
@@ -111,7 +112,7 @@ func (r *userRepository) ActivationUser(token string) (model.User, error) {
 			return err
 		}
 
-		err = r.deleteUserInvitation(tx, userInvitation)
+		err = r.deleteUserInvitation(tx, userInvitation.UserID)
 		if err != nil {
 			return err
 		}
@@ -134,8 +135,8 @@ func (r *userRepository) update(tx *gorm.DB, user model.User) (model.User, error
 
 	return user, nil
 }
-func (r *userRepository) deleteUserInvitation(tx *gorm.DB, userInvitation model.UserInvitation) error {
-	err := tx.Delete(&userInvitation).Error
+func (r *userRepository) deleteUserInvitation(tx *gorm.DB, userID string) error {
+	err := tx.Where("user_id = ?", userID).Delete(&model.UserInvitation{}).Error
 	if err != nil {
 		return err
 	}
@@ -154,6 +155,37 @@ func (r *userRepository) getUserInvitationByToken(tx *gorm.DB, token string) (mo
 	}
 
 	return userInvitation, nil
+}
+
+func (r *userRepository) DeleteUser(userID string) error {
+	err := helpers.RunDBTransaction(r.db, func(tx *gorm.DB) error {
+		err := r.deleteUser(tx, userID)
+		if err != nil {
+			return err
+		}
+
+		err = r.deleteUserInvitation(tx, userID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *userRepository) deleteUser(tx *gorm.DB, userID string) error {
+	err := tx.Where("id = ?", userID).Delete(&model.User{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *userRepository) GetUserByID(userID string) (model.User, error) {

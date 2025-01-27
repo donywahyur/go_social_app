@@ -16,15 +16,16 @@ type UserService interface {
 	FollowUser(request model.FollowInput) (bool, error)
 	UnfollowUser(request model.FollowInput) (bool, error)
 	GetUserFeed(request model.UserFeedRequest) ([]model.UserFeed, error)
+	DeleteUser(userID string) error
 }
 
 type userService struct {
-	userRepo     repositories.User
+	userRepo     repositories.UserRepository
 	followerRepo repositories.FollowerRepository
 	postRepo     repositories.PostRepository
 }
 
-func NewUserService(userRepo repositories.User, followerRepo repositories.FollowerRepository, postRepo repositories.PostRepository) *userService {
+func NewUserService(userRepo repositories.UserRepository, followerRepo repositories.FollowerRepository, postRepo repositories.PostRepository) *userService {
 	return &userService{userRepo, followerRepo, postRepo}
 }
 
@@ -146,4 +147,12 @@ func (s *userService) GetUserFeed(request model.UserFeedRequest) ([]model.UserFe
 	}
 
 	return feed, nil
+}
+func (s *userService) DeleteUser(userID string) error {
+	err := s.userRepo.DeleteUser(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
