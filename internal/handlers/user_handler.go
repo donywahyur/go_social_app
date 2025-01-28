@@ -39,9 +39,8 @@ func (h *UserHandler) FollowUser(c *fiber.Ctx) error {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
 	}
 
-	request.User = model.User{
-		ID: "e93fd2af-4471-4598-b20c-27f345ba097c",
-	}
+	request.User = c.Locals("user").(model.User)
+
 	_, err := h.userService.FollowUser(request)
 	if err != nil {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
@@ -56,9 +55,7 @@ func (h *UserHandler) UnfollowUser(c *fiber.Ctx) error {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
 	}
 
-	request.User = model.User{
-		ID: "e93fd2af-4471-4598-b20c-27f345ba097c",
-	}
+	request.User = c.Locals("user").(model.User)
 
 	_, err := h.userService.UnfollowUser(request)
 	if err != nil {
@@ -77,8 +74,7 @@ func (h *UserHandler) GetUserFeed(c *fiber.Ctx) error {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
 	}
 
-	request.User = model.User{
-		ID: "21250e17-d4f0-4124-84c8-c4babac4f597"}
+	request.User = c.Locals("user").(model.User)
 
 	feed, err := h.userService.GetUserFeed(request)
 	if err != nil {

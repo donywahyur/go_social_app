@@ -8,12 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitUserHandler(db *gorm.DB) *handlers.UserHandler {
+func InitUserHandler(db *gorm.DB) (*handlers.UserHandler, repositories.UserRepository) {
 	userRepo := repositories.NewUserRepository(db)
 	followerRepo := repositories.NewFollowerRepository(db)
 	postRepo := repositories.NewPostRepository(db)
 	service := services.NewUserService(userRepo, followerRepo, postRepo)
 	handler := handlers.NewUserHandler(service)
 
-	return handler
+	return handler, userRepo
 }

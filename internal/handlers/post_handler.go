@@ -35,9 +35,7 @@ func (h *PostHandler) CreatePost(c *fiber.Ctx) error {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Invalid Input", fiber.Map{"message": errorMsg}))
 	}
 
-	request.User = model.User{
-		ID: "21250e17-d4f0-4124-84c8-c4babac4f597",
-	}
+	request.User = c.Locals("user").(model.User)
 
 	newPost, err := h.postService.CreatePost(request)
 	if err != nil {
@@ -114,9 +112,7 @@ func (h *PostHandler) CreateComment(c *fiber.Ctx) error {
 		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Invalid Input", fiber.Map{"message": errorMsg}))
 	}
 
-	request.User = model.User{
-		ID: "21250e17-d4f0-4124-84c8-c4babac4f597",
-	}
+	request.User = c.Locals("user").(model.User)
 
 	newComment, err := h.postService.CreateComment(request)
 	if err != nil {

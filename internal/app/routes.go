@@ -35,13 +35,13 @@ func LoadRoute(app *App) {
 	authentication.Get("/activate/:token", app.UserHandler.ActivationUser)
 	authentication.Post("/login", app.UserHandler.LoginUser)
 
-	users := v1.Group("/users")
+	users := v1.Group("/users", app.Middlewares.CheckAuth)
 	users.Get("/feeds", app.UserHandler.GetUserFeed)
 	users.Get("/:id", app.UserHandler.GetUserByID)
 	users.Get("/:id/follow", app.UserHandler.FollowUser)
 	users.Get("/:id/unfollow", app.UserHandler.UnfollowUser)
 
-	posts := v1.Group("/posts")
+	posts := v1.Group("/posts", app.Middlewares.CheckAuth)
 	posts.Post("", app.PostHandler.CreatePost)
 	posts.Get("/:id", app.PostHandler.GetPostByID)
 	posts.Put("/:id", app.PostHandler.UpdatePost)

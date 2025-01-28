@@ -60,6 +60,7 @@ type UserFeedRequest struct {
 type UserFeed struct {
 	PostID       string         `json:"post_id"`
 	UserID       string         `json:"user_id"`
+	Username     string         `json:"username"`
 	Content      string         `json:"content"`
 	Title        string         `json:"title"`
 	Tags         pq.StringArray `gorm:"type:text[]" json:"tags"`
