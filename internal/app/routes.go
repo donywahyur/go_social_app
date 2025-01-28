@@ -33,6 +33,7 @@ func LoadRoute(app *App) {
 	authentication := v1.Group("/authentication")
 	authentication.Post("/register", app.UserHandler.RegisterUser)
 	authentication.Get("/activate/:token", app.UserHandler.ActivationUser)
+	authentication.Post("/login", app.UserHandler.LoginUser)
 
 	users := v1.Group("/users")
 	users.Get("/feeds", app.UserHandler.GetUserFeed)

@@ -6,11 +6,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"go_social_app/internal/env"
 	"go_social_app/internal/helpers"
 	model "go_social_app/internal/models"
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/argon2"
 	"gorm.io/gorm"
 )
@@ -19,7 +21,9 @@ type UserRepository interface {
 	RegisterAndInviteUser(user model.User, userInvitation model.UserInvitation) (model.User, error)
 	HashPassword(password string) (string, error)
 	CompareHash(password, passwordHash string) (bool, error)
+	GenereateJWTToken(userID string) (string, error)
 	GetUserByID(userID string) (model.User, error)
+	GetUserByEmail(email string) (model.User, error)
 	ActivationUser(token string) (model.User, error)
 	DeleteUser(userID string) error
 }
@@ -197,6 +201,14 @@ func (r *userRepository) GetUserByID(userID string) (model.User, error) {
 	return user, nil
 }
 
+func (r *userRepository) GetUserByEmail(email string) (model.User, error) {
+	var user model.User
+	err := r.db.Preload("Role").First(&user, "email = ?", email).Error
+	if err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
 func (r *userRepository) HashPassword(password string) (string, error) {
 	salt := make([]byte, r.param.saltLength)
 	_, err := rand.Read(salt)
@@ -244,4 +256,21 @@ func (r *userRepository) CompareHash(password, passwordHash string) (bool, error
 
 	return subtle.ConstantTimeCompare(comparisonHash, decryptedHash) == 1, nil
 
+}
+
+func (r *userRepository) GenereateJWTToken(userID string) (string, error) {
+	claims := jwt.MapClaims{
+		"sub": userID,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	jwtKey := []byte(env.Get("JWT_SECRET_KEY", "secret"))
+	signedToken, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }

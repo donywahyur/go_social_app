@@ -12,6 +12,7 @@ import (
 type UserService interface {
 	RegisterUser(request model.UserRegiterInput) (model.UserWithToken, error)
 	ActivationUser(request model.UserActivationInput) (model.User, error)
+	LoginUser(request model.UserLoginInput) (model.UserWithToken, error)
 	GetUserByID(request model.GetUserByIDInput) (model.User, error)
 	FollowUser(request model.FollowInput) (bool, error)
 	UnfollowUser(request model.FollowInput) (bool, error)
@@ -80,6 +81,33 @@ func (s *userService) ActivationUser(request model.UserActivationInput) (model.U
 	}
 
 	return user, nil
+}
+func (s *userService) LoginUser(request model.UserLoginInput) (model.UserWithToken, error) {
+	user, err := s.userRepo.GetUserByEmail(request.Email)
+	if err != nil {
+		return model.UserWithToken{}, err
+	}
+
+	valid, err := s.userRepo.CompareHash(request.Password, user.Password)
+	if err != nil {
+		return model.UserWithToken{}, err
+	}
+
+	if !valid {
+		return model.UserWithToken{}, errors.New("invalid password")
+	}
+
+	token, err := s.userRepo.GenereateJWTToken(user.ID)
+	if err != nil {
+		return model.UserWithToken{}, err
+	}
+
+	userWithToken := model.UserWithToken{
+		User:  user,
+		Token: token,
+	}
+
+	return userWithToken, nil
 }
 
 func (s *userService) GetUserByID(request model.GetUserByIDInput) (model.User, error) {

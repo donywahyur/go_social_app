@@ -35,6 +35,11 @@ type UserActivationInput struct {
 	Token string `uri:"token" validate:"required"`
 }
 
+type UserLoginInput struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
 type GetUserByIDInput struct {
 	ID string `uri:"id" validate:"required"`
 }

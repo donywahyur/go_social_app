@@ -148,3 +148,17 @@ func (h *UserHandler) ActivationUser(c *fiber.Ctx) error {
 
 	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to activation user", user))
 }
+
+func (h *UserHandler) LoginUser(c *fiber.Ctx) error {
+	var request model.UserLoginInput
+	if err := c.BodyParser(&request); err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	user, err := h.userService.LoginUser(request)
+	if err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Bad Request", fiber.Map{"Message": err.Error()}))
+	}
+
+	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to login user", user))
+}
