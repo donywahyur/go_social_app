@@ -20,9 +20,9 @@ func Initialize() *App {
 
 	//initialize handler
 	userHandler, userRepo := initializers.InitUserHandler(db)
-	postHandler := initializers.InitPostHandler(db)
+	postHandler, postRepo := initializers.InitPostHandler(db)
 
-	middlewares := NewMiddlewares(userRepo)
+	middlewares := NewMiddlewares(userRepo, postRepo)
 
 	return &App{
 		FiberApp:    fiber,

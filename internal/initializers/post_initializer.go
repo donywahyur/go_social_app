@@ -8,11 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitPostHandler(db *gorm.DB) *handlers.PostHandler {
+func InitPostHandler(db *gorm.DB) (*handlers.PostHandler, repositories.PostRepository) {
 	postRepo := repositories.NewPostRepository(db)
 	commentRepo := repositories.NewCommentRepository(db)
 	service := services.NewPostService(postRepo, commentRepo)
 	handler := handlers.NewPostHandler(service)
 
-	return handler
+	return handler, postRepo
 }

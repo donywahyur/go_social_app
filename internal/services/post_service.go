@@ -11,6 +11,7 @@ type PostService interface {
 	CreatePost(request model.CreatePostRequest) (model.Post, error)
 	GetPostByID(request model.GetPostByIDRequest) (model.Post, error)
 	UpdatePost(request model.UpdatePostRequest) (model.Post, error)
+	DeletePost(request model.DeletePostRequest) error
 	CreateComment(model.CreateCommentRequest) (model.Comment, error)
 }
 
@@ -74,6 +75,14 @@ func (s *postService) UpdatePost(request model.UpdatePostRequest) (model.Post, e
 	}
 
 	return newPost, nil
+}
+func (s *postService) DeletePost(request model.DeletePostRequest) error {
+	err := s.postRepo.DeletePost(request.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *postService) CreateComment(request model.CreateCommentRequest) (model.Comment, error) {

@@ -36,3 +36,7 @@ type UpdatePostRequest struct {
 	Title   string   `json:"title" validate:"required"`
 	Tags    []string `json:"tags" validate:"required"`
 }
+
+type DeletePostRequest struct {
+	ID string `uri:"id" validate:"required"`
+}

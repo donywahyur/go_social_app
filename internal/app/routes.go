@@ -44,7 +44,8 @@ func LoadRoute(app *App) {
 	posts := v1.Group("/posts", app.Middlewares.CheckAuth)
 	posts.Post("", app.PostHandler.CreatePost)
 	posts.Get("/:id", app.PostHandler.GetPostByID)
-	posts.Put("/:id", app.PostHandler.UpdatePost)
+	posts.Put("/:id", app.Middlewares.CheckRolePrecendence(2), app.PostHandler.UpdatePost)
+	posts.Delete("/:id", app.Middlewares.CheckRolePrecendence(3), app.PostHandler.DeletePost)
 	posts.Post("/:id/comments", app.PostHandler.CreateComment)
 
 }

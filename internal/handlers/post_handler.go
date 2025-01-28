@@ -89,6 +89,21 @@ func (h *PostHandler) UpdatePost(c *fiber.Ctx) error {
 	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to update post", newPost))
 }
 
+func (h *PostHandler) DeletePost(c *fiber.Ctx) error {
+	var request model.DeletePostRequest
+
+	if err := c.ParamsParser(&request); err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Invalid Input", fiber.Map{"message": err.Error()}))
+	}
+
+	err := h.postService.DeletePost(request)
+	if err != nil {
+		return c.JSON(helpers.ResponseApi(fiber.StatusBadRequest, "Failed to delete post", fiber.Map{"message": err.Error()}))
+	}
+
+	return c.JSON(helpers.ResponseApi(fiber.StatusOK, "Success to delete post", "Success delete post"))
+}
+
 func (h *PostHandler) CreateComment(c *fiber.Ctx) error {
 	var request model.CreateCommentRequest
 

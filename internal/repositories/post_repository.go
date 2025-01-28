@@ -11,6 +11,7 @@ type PostRepository interface {
 	CreatePost(post model.Post) (model.Post, error)
 	GetPostByID(postID string) (model.Post, error)
 	UpdatePost(post model.Post) (model.Post, error)
+	DeletePost(postID string) error
 	UserFeed(userID string, limit int, offset int, search string, tags pq.StringArray) ([]model.UserFeed, error)
 }
 
@@ -49,6 +50,17 @@ func (r *postRepository) UpdatePost(post model.Post) (model.Post, error) {
 	}
 
 	return post, nil
+}
+
+func (r *postRepository) DeletePost(postID string) error {
+	var post model.Post
+
+	err := r.db.Where("id = ?", postID).Delete(&post).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *postRepository) UserFeed(userID string, limit int, offset int, search string, tags pq.StringArray) ([]model.UserFeed, error) {

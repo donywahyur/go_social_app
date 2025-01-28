@@ -1,8 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"go_social_app/internal/env"
 	"go_social_app/internal/helpers"
+	model "go_social_app/internal/models"
 	"go_social_app/internal/repositories"
 	"strings"
 
@@ -12,10 +14,11 @@ import (
 
 type Middlewares struct {
 	userRepo repositories.UserRepository
+	postRepo repositories.PostRepository
 }
 
-func NewMiddlewares(userRepo repositories.UserRepository) *Middlewares {
-	return &Middlewares{userRepo}
+func NewMiddlewares(userRepo repositories.UserRepository, postRepo repositories.PostRepository) *Middlewares {
+	return &Middlewares{userRepo, postRepo}
 }
 
 func (m *Middlewares) CheckAuth(c *fiber.Ctx) error {
@@ -59,4 +62,28 @@ func (m *Middlewares) CheckAuth(c *fiber.Ctx) error {
 	c.Locals("user", user)
 
 	return c.Next()
+}
+
+func (m *Middlewares) CheckRolePrecendence(levelRequire int) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		postID := c.Params("id")
+
+		post, err := m.postRepo.GetPostByID(postID)
+		if err != nil {
+			return c.JSON(helpers.ResponseApi(fiber.StatusInternalServerError, "Internal Server Error", err))
+		}
+
+		user := c.Locals("user").(model.User)
+		fmt.Println(user.ID, post.UserID, levelRequire)
+
+		if post.UserID == user.ID {
+			return c.Next()
+		}
+
+		if user.Role.Level >= levelRequire {
+			return c.Next()
+		}
+
+		return c.JSON(helpers.ResponseApi(fiber.StatusForbidden, "Need higher role", nil))
+	}
 }
