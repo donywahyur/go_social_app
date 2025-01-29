@@ -2,7 +2,11 @@ package app
 
 import (
 	_ "go_social_app/docs"
+	"go_social_app/internal/helpers"
+	"time"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 )
@@ -10,6 +14,20 @@ import (
 // swagger handler
 func LoadRoute(app *App) {
 	app.FiberApp.Use(recover.New())
+
+	app.FiberApp.Use(limiter.New(limiter.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.IP() == "127.0.0.1"
+		},
+		Max:        10,
+		Expiration: 30 * time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.Get("x-forwarded-for")
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.JSON(helpers.ResponseApi(fiber.StatusTooManyRequests, "Too many requests", nil))
+		},
+	}))
 
 	api := app.FiberApp.Group("/api")
 	v1 := api.Group("/v1")
