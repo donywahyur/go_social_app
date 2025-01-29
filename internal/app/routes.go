@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
@@ -13,6 +14,11 @@ import (
 
 // swagger handler
 func LoadRoute(app *App) {
+	app.FiberApp.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders: "Origin, Content-Type, Content-Length, Accept, X-Requested-With, Authorization, X-Forwarded-For",
+	}))
 	app.FiberApp.Use(recover.New())
 
 	app.FiberApp.Use(limiter.New(limiter.Config{
