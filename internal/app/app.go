@@ -2,6 +2,7 @@ package app
 
 import (
 	"go_social_app/internal/handlers"
+	"go_social_app/internal/helpers"
 	"go_social_app/internal/repositories"
 	"go_social_app/internal/repositories/cache"
 	"go_social_app/internal/services"
@@ -31,7 +32,7 @@ func Initialize() *App {
 	redisRepo := cache.NewRedisRepository(redis)
 
 	postService := services.NewPostService(postRepo, commentRepo)
-	userService := services.NewUserService(userRepo, followerRepo, postRepo)
+	userService := services.NewUserService(userRepo, followerRepo, postRepo, &helpers.RealUUIDGenerator{}, &helpers.RealClock{})
 
 	postHandler := handlers.NewPostHandler(postService)
 	userHandler := handlers.NewUserHandler(userService)

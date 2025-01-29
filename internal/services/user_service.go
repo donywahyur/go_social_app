@@ -2,11 +2,10 @@ package services
 
 import (
 	"errors"
+	"go_social_app/internal/helpers"
 	model "go_social_app/internal/models"
 	"go_social_app/internal/repositories"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type UserService interface {
@@ -21,22 +20,30 @@ type UserService interface {
 }
 
 type userService struct {
-	userRepo     repositories.UserRepository
-	followerRepo repositories.FollowerRepository
-	postRepo     repositories.PostRepository
+	userRepo      repositories.UserRepository
+	followerRepo  repositories.FollowerRepository
+	postRepo      repositories.PostRepository
+	UUIDGenerator helpers.UUIDGenerator
+	clock         helpers.Clock
 }
 
-func NewUserService(userRepo repositories.UserRepository, followerRepo repositories.FollowerRepository, postRepo repositories.PostRepository) *userService {
-	return &userService{userRepo, followerRepo, postRepo}
+func NewUserService(
+	userRepo repositories.UserRepository,
+	followerRepo repositories.FollowerRepository,
+	postRepo repositories.PostRepository,
+	uuidGenerator helpers.UUIDGenerator,
+	clock helpers.Clock,
+) *userService {
+	return &userService{userRepo, followerRepo, postRepo, uuidGenerator, clock}
 }
 
 func (s *userService) RegisterUser(request model.UserRegiterInput) (model.UserWithToken, error) {
-	userID := uuid.NewString()
+	userID := s.UUIDGenerator.NewString()
 
 	userInvitation := model.UserInvitation{
-		Token:     uuid.NewString(),
+		Token:     s.UUIDGenerator.NewString(),
 		UserID:    userID,
-		ExpiredAt: time.Now().Add(time.Hour * 24),
+		ExpiredAt: s.clock.Now().Add(time.Hour * 24),
 	}
 
 	user := model.User{
@@ -50,7 +57,7 @@ func (s *userService) RegisterUser(request model.UserRegiterInput) (model.UserWi
 			Name:  "user",
 			Level: 1,
 		},
-		CreatedAt: time.Now(),
+		CreatedAt: s.clock.Now(),
 	}
 
 	passwordHash, err := s.userRepo.HashPassword(request.Password)
@@ -133,7 +140,7 @@ func (s *userService) FollowUser(request model.FollowInput) (bool, error) {
 	follow := model.Follower{
 		UserID:     request.User.ID,
 		FollowerID: request.ID,
-		CreatedAt:  time.Now(),
+		CreatedAt:  s.clock.Now(),
 	}
 
 	followed, err := s.followerRepo.FollowUser(follow)
